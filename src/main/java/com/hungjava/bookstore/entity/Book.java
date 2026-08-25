@@ -47,7 +47,9 @@ public class Book {
     @Column(name = "discount_percent")
     int discountPercent; // Giảm giá bao nhiêu %
 
-    String status;
+    @Builder.Default
+    @Column(nullable = false)
+    String status = "ACTIVE"; // Mặc định khi tạo mới sách là ACTIVE
 
     @ManyToMany
     @JoinTable(name = "book_genre",

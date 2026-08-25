@@ -118,8 +118,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AuthenticationResponse login(AuthenticationRequest authenticationRequest) {
 
-        User user = userRepository.findByUsername(authenticationRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại"));
+        User user = userRepository.findByEmail(authenticationRequest.getEmail())
+                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_USER));
 
         if (!"ACTIVE".equals(user.getStatus())) {
             throw new ApiException(ErrorCode.USER_INACTIVE);
@@ -128,7 +128,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         if(!passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Mật khẩu không chính xác");
+            throw new ApiException(ErrorCode.INVALID_PASSWORD);
         }
 
         return AuthenticationResponse.builder()

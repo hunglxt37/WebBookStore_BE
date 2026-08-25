@@ -8,9 +8,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -66,6 +68,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleGeneral(
             Exception ex,
             HttpServletRequest request) {
+
+        // In ra lỗi thật vào console Spring Boot để debug
+        log.error("[INTERNAL_ERROR] Unexpected exception at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 ApiResponse.<Void>builder()

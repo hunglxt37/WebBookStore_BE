@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,8 +23,10 @@ public class CloudinaryService {
     // 1. Method dùng chung để UPLOAD 1 ẢNH
     public String uploadFile(MultipartFile file, String folderName) {
         try {
+            // Dùng signed upload (không cần upload_preset)
             Map<String, Object> params = ObjectUtils.asMap(
-                    "upload_preset", "bookstore", "folder", folderName
+                    "folder", folderName,
+                    "resource_type", "image"
             );
             @SuppressWarnings("unchecked")
             Map<String, Object> uploadResult = (Map<String, Object>) cloudinary.uploader().upload(file.getBytes(), params);
@@ -32,18 +36,23 @@ public class CloudinaryService {
         }
     }
 
-    // 2. Method dùng chung để UPLOAD NHIỀU ẢNH LÚC
+    // 2. Upload NHIỀU ẢNH SONG SONG (parallel) - nhanh hơn sequential nhiều lần
     public List<String> uploadMultipleFiles(List<MultipartFile> files, String folderName) {
-        List<String> urls = new ArrayList<>();
-        if (files != null && !files.isEmpty()) {
-            for (MultipartFile file : files) {
-                if (!file.isEmpty()) {
-                    urls.add(uploadFile(file, folderName)); // Gọi lại method 1
-                }
-            }
-        }
-        return urls;
+        if (files == null || files.isEmpty()) return new ArrayList<>();
+
+        // Tạo 1 danh sách các task upload chạy song song
+        List<CompletableFuture<String>> futures = files.stream()
+                .filter(file -> file != null && !file.isEmpty())
+                .map(file -> CompletableFuture.supplyAsync(() -> uploadFile(file, folderName)))
+                .toList();
+
+        // Chờ tất cả task hoàn thành, gom kết quả lại
+        return futures.stream()
+                .map(CompletableFuture::join)
+                .collect(Collectors.toList());
     }
+
+
 
     // 3. Method dùng chung để XÓA ẢNH TRÊN MÂY (Tránh rác bộ nhớ)
     public void deleteFile(String publicId) {

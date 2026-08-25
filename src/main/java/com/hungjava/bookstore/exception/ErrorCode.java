@@ -27,7 +27,7 @@ public enum ErrorCode {
     ORDER_NOT_FOUND("Không tìm thấy đơn đặt hàng",HttpStatus.NOT_FOUND),
     CANNOT_CANCEL_ORDER("Đơn hàng đang giao hoặc đã giao, không thể hủy",HttpStatus.BAD_REQUEST),
     INVALID_USER("Tài khoản không tồn tại", HttpStatus.NOT_FOUND),
-    INVALID_PASSWORD("Mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD("Email hoặc mật khẩu không chính xác", HttpStatus.BAD_REQUEST),
     USER_ALREADY_EXISTS("Tên đăng nhập đã tồn tại", HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_EXISTS("Email đã tồn tại", HttpStatus.BAD_REQUEST),
     CART_ITEM_NOT_FOUND("Không tìm thấy sản phẩm trong giỏ hàng", HttpStatus.NOT_FOUND),

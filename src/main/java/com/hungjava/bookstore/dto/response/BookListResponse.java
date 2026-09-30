@@ -15,7 +15,11 @@ public class BookListResponse {
     Integer id;
     String name;
     String author;
+    BigDecimal listPrice;
     BigDecimal sellPrice;
+    int discountPercent;
+    int quantity;
+    String status;
     double avgRating;
     int soldQuantity;
     String thumbnailUrl;

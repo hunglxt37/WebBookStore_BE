@@ -8,6 +8,10 @@ public interface BookProjection {
     String getName();
     String getAuthor();
     BigDecimal getSellPrice();
+    BigDecimal getListPrice();
+    Integer getQuantity();
+    Integer getDiscountPercent();
+    String getStatus();
     Double getAvgRating();
     Integer getSoldQuantity();
     String getThumbnailUrl();

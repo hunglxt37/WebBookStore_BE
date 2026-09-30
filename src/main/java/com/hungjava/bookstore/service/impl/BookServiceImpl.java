@@ -125,6 +125,9 @@ public class BookServiceImpl implements BookService {
         book.setSellPrice(request.getSellPrice());
         book.setQuantity(request.getQuantity());
         book.setDiscountPercent(request.getDiscountPercent() != null ? request.getDiscountPercent() : 0);
+        if (request.getStatus() != null && !request.getStatus().isBlank()) {
+            book.setStatus(request.getStatus());
+        }
 
         book.getListGenres().clear();
         if (request.getGenreIds() != null && !request.getGenreIds().isEmpty()) {

@@ -2,6 +2,7 @@ package com.hungjava.bookstore.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.math.BigDecimal;
 
 @Data
@@ -9,15 +10,13 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CartItemResponse {
-    Integer id;
-    Integer bookId;
+public class OrderDetailResponse {
+    int id;
+    int bookId;
     String bookName;
     String bookImage;
-    BigDecimal listPrice;
-    BigDecimal sellPrice;
+    BigDecimal price;
     int quantity;
+    boolean isReview;
     BigDecimal subTotal;
-    int stockQuantity;
-    String status;
 }

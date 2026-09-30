@@ -3,6 +3,7 @@ package com.hungjava.bookstore.service.impl;
 import com.hungjava.bookstore.dto.request.CancelOrderRequest;
 import com.hungjava.bookstore.dto.request.OrderRequest;
 import com.hungjava.bookstore.dto.request.UpdateOrderStatusRequest;
+import com.hungjava.bookstore.dto.response.OrderListResponse;
 import com.hungjava.bookstore.dto.response.OrderResponse;
 import com.hungjava.bookstore.entity.Book;
 import com.hungjava.bookstore.entity.CartItem;
@@ -18,6 +19,7 @@ import com.hungjava.bookstore.repository.BookRepository;
 import com.hungjava.bookstore.repository.CartItemRepository;
 import com.hungjava.bookstore.repository.DeliveryRepository;
 import com.hungjava.bookstore.repository.OrderDetailRepository;
+import com.hungjava.bookstore.repository.OrderProjection;
 import com.hungjava.bookstore.repository.OrderRepository;
 import com.hungjava.bookstore.repository.PaymentRepository;
 import com.hungjava.bookstore.repository.UserRepository;
@@ -172,4 +174,33 @@ public class OrderServiceImpl implements OrderService {
             }
         }
     }
+
+    @Override
+    public List<OrderListResponse> getMyOrders(Integer userId) {
+        List<OrderProjection> projections = orderRepository.findAllOrdersByUserId(userId);
+        return projections.stream()
+                .map(orderMapper::toOrderListResponse)
+                .toList();
+    }
+
+    @Override
+    public List<OrderListResponse> getAllOrdersForAdmin() {
+        List<OrderProjection> projections = orderRepository.findAllOrdersForAdmin();
+        return projections.stream()
+                .map(orderMapper::toOrderListResponse)
+                .toList();
+    }
+
+    @Override
+    public OrderResponse getOrderById(Integer orderId, Integer userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (userId != null && order.getUser().getId() != userId) {
+            throw new ApiException(ErrorCode.ORDER_NOT_FOUND);
+        }
+
+        return orderMapper.toOrderResponse(order);
+    }
 }
+

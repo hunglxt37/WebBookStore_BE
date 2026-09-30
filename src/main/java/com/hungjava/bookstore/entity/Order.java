@@ -23,6 +23,9 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     int id;
 
+    @Column(name = "order_code")
+    String orderCode;
+
     String fullName;
 
     String phone;

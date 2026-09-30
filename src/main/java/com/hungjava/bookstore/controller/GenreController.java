@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("${api.prefix}/genres")
@@ -34,6 +36,14 @@ public class GenreController {
         return ResponseEntity.ok(ApiResponse.<PageResponse<GenreResponse>>builder()
                 .success(true)
                 .data(genreService.getAll(page, size))
+                .build());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<GenreResponse>>> getAllNoPage() {
+        return ResponseEntity.ok(ApiResponse.<List<GenreResponse>>builder()
+                .success(true)
+                .data(genreService.getAllNoPage())
                 .build());
     }
 

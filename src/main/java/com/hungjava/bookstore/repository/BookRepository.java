@@ -16,7 +16,11 @@ public interface BookRepository extends JpaRepository<Book, Integer> {
         @Query(value = "SELECT b.id AS id, " +
                         "b.name AS name, " +
                         "b.author AS author, " +
+                        "b.list_price AS listPrice, " +
                         "b.sell_price AS sellPrice, " +
+                        "b.quantity AS quantity, " +
+                        "b.discount_percent AS discountPercent, " +
+                        "b.status AS status, " +
                         "b.avg_rating AS avgRating, " +
                         "b.sold_quantity AS soldQuantity, " +
                         "i.url_image AS thumbnailUrl, " +

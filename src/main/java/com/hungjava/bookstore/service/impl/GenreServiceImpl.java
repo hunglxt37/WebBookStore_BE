@@ -62,4 +62,10 @@ public class GenreServiceImpl implements GenreService {
         return new PageResponse<>(responsePage);
     }
 
+    @Override
+    public java.util.List<GenreResponse> getAllNoPage() {
+        return genreRepository.findAll().stream()
+                .map(genreMapper::toGenreResponse)
+                .toList();
+    }
 }

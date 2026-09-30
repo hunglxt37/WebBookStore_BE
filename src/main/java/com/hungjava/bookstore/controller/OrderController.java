@@ -5,6 +5,7 @@ import com.hungjava.bookstore.dto.request.CancelOrderRequest;
 import com.hungjava.bookstore.dto.request.OrderRequest;
 import com.hungjava.bookstore.dto.request.UpdateOrderStatusRequest;
 import com.hungjava.bookstore.dto.response.CancelOrderResponse;
+import com.hungjava.bookstore.dto.response.OrderListResponse;
 import com.hungjava.bookstore.dto.response.OrderResponse;
 import com.hungjava.bookstore.service.OrderService;
 import com.hungjava.bookstore.utils.SecurityUtils;
@@ -15,6 +16,9 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix}/orders")
@@ -23,6 +27,43 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
 
     OrderService orderService;
+
+    @GetMapping("/my-orders")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER')")
+    public ResponseEntity<ApiResponse<List<OrderListResponse>>> getMyOrder(){
+        Integer userId = SecurityUtils.getCurrentUserId();
+        List<OrderListResponse> response = orderService.getMyOrders(userId);
+
+        return ResponseEntity.ok(ApiResponse.<List<OrderListResponse>>builder()
+                .success(true)
+                .data(response)
+                .build());
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<List<OrderListResponse>>> getAllOrders() {
+        List<OrderListResponse> response = orderService.getAllOrdersForAdmin();
+        return ResponseEntity.ok(ApiResponse.<List<OrderListResponse>>builder()
+                .success(true)
+                .data(response)
+                .build());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER', 'ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderById(@PathVariable Integer id) {
+        Integer userId = SecurityUtils.getCurrentUserId();
+        boolean isAdmin = SecurityContextHolder.getContext()
+                .getAuthentication().getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        OrderResponse response = orderService.getOrderById(id, isAdmin ? null : userId);
+        return ResponseEntity.ok(ApiResponse.<OrderResponse>builder()
+                .success(true)
+                .data(response)
+                .build());
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_CUSTOMER')")

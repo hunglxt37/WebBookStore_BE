@@ -22,6 +22,7 @@ public class BookResponse {
     double avgRating;
     int soldQuantity;
     int discountPercent;
+    String status;
     Instant createdAt;
     Instant updatedAt;
     List<GenreInfo> genres;

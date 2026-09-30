@@ -142,9 +142,12 @@ public class CartItemServiceImpl implements CartItemService {
                 .bookId(book.getId())
                 .bookName(book.getName())
                 .bookImage(imageUrl)
+                .listPrice(book.getListPrice())
                 .sellPrice(sellPrice)
                 .quantity(cartItem.getQuantity())
                 .subTotal(subTotal)
+                .stockQuantity(book.getQuantity())
+                .status(book.getStatus())
                 .build();
     }
 }

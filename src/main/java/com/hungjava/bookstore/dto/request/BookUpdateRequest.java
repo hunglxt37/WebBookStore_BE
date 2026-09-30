@@ -41,6 +41,8 @@ public class BookUpdateRequest {
     @Max(value = 100, message = "Phần trăm giảm giá không được vượt quá 100%")
     Integer discountPercent;
 
+    String status;
+
     List<Integer> genreIds;
 
     List<MultipartFile> images;

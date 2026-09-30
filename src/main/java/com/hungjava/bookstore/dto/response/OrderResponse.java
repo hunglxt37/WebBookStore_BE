@@ -5,6 +5,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -13,6 +14,7 @@ import java.time.Instant;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrderResponse {
     int id;
+    String orderCode;
     String fullName;
     String phone;
     String deliveryAddress;
@@ -27,4 +29,5 @@ public class OrderResponse {
     String status;
     Instant createdAt;
     Instant updatedAt;
+    List<OrderDetailResponse> orderDetails;
 }

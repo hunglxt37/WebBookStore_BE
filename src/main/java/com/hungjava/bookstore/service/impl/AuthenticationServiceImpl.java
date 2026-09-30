@@ -117,31 +117,71 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse login(AuthenticationRequest authenticationRequest) {
+        User user = userRepository.findByEmail(authenticationRequest.getEmail()).orElse(null);
 
-        User user = userRepository.findByEmail(authenticationRequest.getEmail())
-                .orElseThrow(() -> new ApiException(ErrorCode.INVALID_USER));
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        if (user == null || !passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword())) {
+            throw new ApiException(ErrorCode.INVALID_PASSWORD); // Email hoặc mật khẩu không chính xác
+        }
 
         if (!"ACTIVE".equals(user.getStatus())) {
             throw new ApiException(ErrorCode.USER_INACTIVE);
         }
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-
-        if(!passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword())) {
-            throw new ApiException(ErrorCode.INVALID_PASSWORD);
-        }
+        String accessToken = generateToken(user, 1, ChronoUnit.HOURS, "ACCESS");
+        String refreshToken = generateToken(user, 14, ChronoUnit.DAYS, "REFRESH");
 
         return AuthenticationResponse.builder()
-                .token(generateToken(user))
+                .token(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
+        SignedJWT signedJWT = verifyToken(request.getRefreshToken());
+
+        String tokenType = (String) signedJWT.getJWTClaimsSet().getClaim("tokenType");
+        if (!"REFRESH".equals(tokenType)) {
+            throw new JwtException("Token không phải là refresh token hợp lệ");
+        }
+
+        // Token Rotation: Vô hiệu hóa refresh token cũ ngay lập tức để chống tấn công replay
+        String jwtId = signedJWT.getJWTClaimsSet().getJWTID();
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+        invalidTokenRepository.save(InvalidToken.builder()
+                .id(jwtId)
+                .expiryTime(new java.sql.Timestamp(expiryTime.getTime()).toLocalDateTime())
+                .build());
+
+        String username = signedJWT.getJWTClaimsSet().getSubject();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException(ErrorCode.USER_NOT_FOUND));
+
+        if (!"ACTIVE".equals(user.getStatus())) {
+            throw new ApiException(ErrorCode.USER_INACTIVE);
+        }
+
+        String newAccessToken = generateToken(user, 1, ChronoUnit.HOURS, "ACCESS");
+        String newRefreshToken = generateToken(user, 14, ChronoUnit.DAYS, "REFRESH");
+
+        return AuthenticationResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(newRefreshToken)
                 .build();
     }
 
     @Override
     public IntrospectResponse introspect(IntrospectRequest introspectRequest)  {
         try {
-            verifyToken(introspectRequest.getToken());
+            SignedJWT jwt = verifyToken(introspectRequest.getToken());
+            String tokenType = (String) jwt.getJWTClaimsSet().getClaim("tokenType");
+            if (tokenType != null && !"ACCESS".equals(tokenType)) {
+                return IntrospectResponse.builder().valid(false).build();
+            }
             return IntrospectResponse.builder().valid(true).build();
-        } catch (JwtException e) {
+        } catch (JwtException | ParseException e) {
             return IntrospectResponse.builder().valid(false).build();
         }
     }
@@ -170,30 +210,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-    //Tạo chuỗi JWT mới cho một User
-    private String generateToken(User user) {
+    // Tạo chuỗi JWT mới cho một User với loại token và thời hạn tương ứng
+    private String generateToken(User user, long duration, ChronoUnit unit, String tokenType) {
 
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("bookstore.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(duration, unit).toEpochMilli()
                 ))
                 .claim("userId", user.getId())
-                .claim("role", getRoles(user))
-                .jwtID(UUID.randomUUID().toString()) // Random 1 ID ngẫu nhiên cho Token để hỗ trợ Logout
-                .build();
+                .claim("tokenType", tokenType)
+                .jwtID(UUID.randomUUID().toString());
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        if ("ACCESS".equals(tokenType)) {
+            builder.claim("role", getRoles(user));
+        }
+
+        Payload payload = new Payload(builder.build().toJSONObject());
 
         JWSObject jwsObject = new JWSObject(header, payload);
 
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
-            return jwsObject.serialize(); // Trả về chuỗi dạng text (Header.Payload.Signature)
+            return jwsObject.serialize();
         } catch (JOSEException e) {
             throw new RuntimeException("Không thể tạo JWT", e);
         }

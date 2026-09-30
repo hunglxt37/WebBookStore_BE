@@ -44,6 +44,14 @@ public class AuthController {
                 .build());
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) throws ParseException, com.nimbusds.jose.JOSEException {
+        return ResponseEntity.ok(ApiResponse.<AuthenticationResponse>builder()
+                .success(true)
+                .data(authenticationService.refreshToken(request))
+                .build());
+    }
+
     @PostMapping("/introspect")
     public ResponseEntity<ApiResponse<IntrospectResponse>> introspect(@Valid @RequestBody IntrospectRequest introspectRequest) {
         return ResponseEntity.ok(ApiResponse.<IntrospectResponse>builder()

@@ -31,6 +31,9 @@ public enum ErrorCode {
     USER_ALREADY_EXISTS("Tên đăng nhập đã tồn tại", HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_EXISTS("Email đã tồn tại", HttpStatus.BAD_REQUEST),
     CART_ITEM_NOT_FOUND("Không tìm thấy sản phẩm trong giỏ hàng", HttpStatus.NOT_FOUND),
+    ORDER_DETAIL_NOT_FOUND("Không tìm thấy chi tiết đơn hàng", HttpStatus.NOT_FOUND),
+    ORDER_NOT_DELIVERED("Chỉ có thể đánh giá sản phẩm khi đơn hàng đã giao thành công", HttpStatus.BAD_REQUEST),
+    ALREADY_REVIEWED("Sản phẩm trong đơn hàng này đã được đánh giá rồi", HttpStatus.BAD_REQUEST),
 
     //Lỗi hệ thống & phân quyền
     UNAUTHORIZED("Bạn chưa đăng nhập", HttpStatus.UNAUTHORIZED),

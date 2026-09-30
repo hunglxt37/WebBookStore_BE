@@ -38,6 +38,9 @@ public class SecurityConfig {
                     // Cho browser gửi preflight request không cần JWT
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers(apiPrefix + "/auth/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, apiPrefix + "/books/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, apiPrefix + "/genres/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, apiPrefix + "/reviews/**").permitAll()
                     .anyRequest().authenticated();
         });
 
